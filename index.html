@@ -972,7 +972,12 @@
     btn.style.opacity = '0.7';
 
     const message = getSMSMessage(student.score);
-    const fullNumber = '88' + num.replace(/^0/, '');
+    // Format: must be 8801XXXXXXXXX (13 digits)
+    let formatted = num.replace(/\D/g, ''); // remove non-digits
+    if(formatted.startsWith('88')) formatted = formatted; // already has 88
+    else if(formatted.startsWith('01')) formatted = '88' + formatted;
+    else if(formatted.startsWith('1')) formatted = '880' + formatted;
+    const fullNumber = formatted;
     const proxyUrl = `https://dropout-sms-proxy.vercel.app/api/send-sms?number=${fullNumber}&message=${encodeURIComponent(message)}`;
 
     let sent = false;
