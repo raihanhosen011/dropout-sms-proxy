@@ -1,0 +1,1042 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dropout AI Alert App — ঝরে পড়ার আগেই সতর্কতা</title>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Poppins:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --green: #22c55e;
+    --yellow: #eab308;
+    --red: #ef4444;
+    --blue-dark: #0f172a;
+    --blue-mid: #1e3a5f;
+    --blue-accent: #3b82f6;
+    --blue-light: #dbeafe;
+    --teal: #0ea5e9;
+    --white: #ffffff;
+    --gray-100: #f1f5f9;
+    --gray-200: #e2e8f0;
+    --gray-500: #64748b;
+    --text-dark: #0f172a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Hind Siliguri', sans-serif;
+    background: var(--blue-dark);
+    color: var(--white);
+    overflow-x: hidden;
+  }
+
+  /* ---- HERO ---- */
+  .hero {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center; padding: 2rem;
+    position: relative; overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 50% 50%, rgba(59,130,246,0.15) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-badge {
+    display: inline-block;
+    background: linear-gradient(90deg, #22c55e, #0ea5e9);
+    color: #fff; font-family: 'Poppins', sans-serif;
+    font-size: 0.75rem; font-weight: 700; letter-spacing: 0.12em;
+    padding: 0.35rem 1.2rem; border-radius: 999px;
+    margin-bottom: 1.5rem; text-transform: uppercase;
+    animation: fadeDown 0.8s ease both;
+  }
+  .hero h1 {
+    font-family: 'Poppins', sans-serif;
+    font-size: clamp(2.2rem, 6vw, 5rem);
+    font-weight: 900; line-height: 1.1;
+    animation: fadeDown 0.9s ease both 0.1s;
+  }
+  .hero h1 span.ai { color: #3b82f6; }
+  .hero h1 span.alert { color: #ef4444; }
+  .hero-tagline {
+    font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+    font-weight: 600; color: #94a3b8;
+    margin-top: 0.75rem;
+    animation: fadeDown 1s ease both 0.2s;
+  }
+  .hero-desc {
+    max-width: 680px; margin: 1.5rem auto 2.5rem;
+    color: #cbd5e1; font-size: 1.05rem; line-height: 1.8;
+    animation: fadeDown 1s ease both 0.3s;
+  }
+  .hero-cta {
+    display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+    animation: fadeDown 1s ease both 0.4s;
+  }
+  .btn {
+    padding: 0.85rem 2rem; border-radius: 999px; font-weight: 700;
+    font-size: 1rem; cursor: pointer; border: none; transition: all 0.25s;
+    font-family: 'Hind Siliguri', sans-serif;
+  }
+  .btn-primary { background: #3b82f6; color: #fff; }
+  .btn-primary:hover { background: #2563eb; transform: translateY(-2px); box-shadow: 0 8px 25px rgba(59,130,246,0.45); }
+  .btn-outline { background: transparent; color: #fff; border: 2px solid rgba(255,255,255,0.3); }
+  .btn-outline:hover { border-color: #fff; background: rgba(255,255,255,0.08); }
+
+  .hero-stats {
+    display: flex; gap: 2.5rem; justify-content: center; margin-top: 3.5rem;
+    flex-wrap: wrap; animation: fadeUp 1s ease both 0.5s;
+  }
+  .stat-item { text-align: center; }
+  .stat-num {
+    font-family: 'Poppins', sans-serif; font-size: 2.2rem; font-weight: 800;
+    background: linear-gradient(135deg, #3b82f6, #0ea5e9); -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .stat-label { font-size: 0.85rem; color: #94a3b8; margin-top: 0.2rem; }
+
+  /* ---- SCROLL DOWN ---- */
+  .scroll-hint {
+    position: absolute; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+    color: #475569; font-size: 0.8rem; animation: bounce 2s infinite;
+  }
+  .scroll-hint svg { width: 20px; }
+
+  /* ---- SECTION COMMONS ---- */
+  section { padding: 5rem 1.5rem; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  .section-label {
+    font-size: 0.75rem; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase;
+    color: #3b82f6; margin-bottom: 0.6rem;
+  }
+  .section-title {
+    font-family: 'Poppins', sans-serif; font-size: clamp(1.7rem, 4vw, 2.6rem);
+    font-weight: 800; line-height: 1.2;
+  }
+  .section-sub { color: #94a3b8; margin-top: 0.75rem; font-size: 1.05rem; line-height: 1.75; }
+
+  /* ---- PROBLEM ---- */
+  #problem { background: #0f172a; }
+  .problem-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-top: 3rem; }
+  .problem-card {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 1rem; padding: 1.5rem; text-align: center;
+    transition: all 0.3s;
+  }
+  .problem-card:hover { background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.3); transform: translateY(-4px); }
+  .problem-icon { font-size: 2.2rem; margin-bottom: 0.8rem; }
+  .problem-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 0.4rem; }
+  .problem-card p { font-size: 0.85rem; color: #94a3b8; }
+
+  /* ---- INPUT DATA ---- */
+  #inputs { background: linear-gradient(180deg, #0f172a 0%, #1e3a5f 100%); }
+  .inputs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-top: 3rem; }
+  .input-card {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 0.9rem; padding: 1.4rem 1rem; text-align: center;
+    cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;
+  }
+  .input-card::after {
+    content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px;
+    background: linear-gradient(90deg, #3b82f6, #0ea5e9);
+    transform: scaleX(0); transition: transform 0.3s;
+  }
+  .input-card:hover::after { transform: scaleX(1); }
+  .input-card:hover { background: rgba(59,130,246,0.15); transform: translateY(-4px); }
+  .input-icon { font-size: 2rem; margin-bottom: 0.6rem; }
+  .input-card h3 { font-size: 0.95rem; font-weight: 600; }
+  .input-card p { font-size: 0.78rem; color: #94a3b8; margin-top: 0.3rem; }
+
+  /* ---- LED SYSTEM ---- */
+  #led { background: #0f172a; }
+  .led-wrapper { display: flex; align-items: center; justify-content: center; gap: 3rem; flex-wrap: wrap; margin-top: 3rem; }
+  .led-box {
+    background: #1a1a2e; border: 2px solid #2d2d44;
+    border-radius: 1.2rem; padding: 2rem 1.5rem;
+    width: 200px; text-align: center;
+    transition: all 0.3s; cursor: pointer;
+  }
+  .led-box:hover { transform: scale(1.05); }
+  .led-dot {
+    width: 60px; height: 60px; border-radius: 50%; margin: 0 auto 1rem;
+    box-shadow: 0 0 30px var(--c);
+    background: var(--c);
+    animation: pulse-led 2s infinite;
+  }
+  .led-green { --c: #22c55e; }
+  .led-yellow { --c: #eab308; }
+  .led-red { --c: #ef4444; }
+  .led-label { font-family: 'Poppins', sans-serif; font-size: 1.4rem; font-weight: 800; }
+  .led-range { font-size: 0.85rem; color: #94a3b8; margin-top: 0.3rem; }
+  .led-status { margin-top: 0.6rem; font-size: 0.82rem; font-weight: 600; padding: 0.3rem 0.8rem; border-radius: 999px; display: inline-block; }
+  .led-green .led-status { background: rgba(34,197,94,0.15); color: #22c55e; }
+  .led-yellow .led-status { background: rgba(234,179,8,0.15); color: #eab308; }
+  .led-red .led-status { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+  /* ---- DEMO CALCULATOR ---- */
+  #demo { background: linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%); }
+  .demo-card {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 1.5rem; padding: 2.5rem; max-width: 700px; margin: 3rem auto 0;
+  }
+  .demo-card h3 { font-family: 'Poppins', sans-serif; font-size: 1.3rem; font-weight: 700; margin-bottom: 2rem; text-align: center; }
+  .slider-row { margin-bottom: 1.5rem; }
+  .slider-row label { display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.5rem; color: #cbd5e1; }
+  .slider-row label span { font-weight: 700; color: #fff; }
+  input[type=range] {
+    width: 100%; height: 6px; -webkit-appearance: none; appearance: none;
+    background: rgba(255,255,255,0.15); border-radius: 999px; outline: none;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+    background: #3b82f6; cursor: pointer; box-shadow: 0 0 10px rgba(59,130,246,0.5);
+  }
+  .score-display {
+    text-align: center; margin-top: 2rem; padding: 1.5rem;
+    background: rgba(0,0,0,0.3); border-radius: 1rem;
+  }
+  .score-num {
+    font-family: 'Poppins', sans-serif; font-size: 3.5rem; font-weight: 900;
+    transition: color 0.4s;
+  }
+  .score-label { font-size: 1rem; margin-top: 0.3rem; font-weight: 600; transition: color 0.4s; }
+  .score-bar-bg { background: rgba(255,255,255,0.1); border-radius: 999px; height: 10px; margin-top: 1rem; }
+  .score-bar { height: 100%; border-radius: 999px; transition: width 0.5s, background 0.4s; }
+
+  /* ---- APP INTERFACE ---- */
+  #app { background: #0f172a; }
+  .app-tabs { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 2.5rem; }
+  .app-tab {
+    padding: 0.6rem 1.4rem; border-radius: 999px; cursor: pointer; font-size: 0.9rem;
+    font-weight: 600; border: 2px solid rgba(255,255,255,0.1); background: transparent;
+    color: #94a3b8; transition: all 0.25s;
+  }
+  .app-tab.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
+  .app-panel { display: none; }
+  .app-panel.active { display: block; }
+
+  /* Dashboard mockup */
+  .mockup-phone {
+    background: #1e293b; border-radius: 2rem; padding: 1.5rem;
+    max-width: 350px; margin: 0 auto;
+    border: 2px solid rgba(255,255,255,0.1);
+    box-shadow: 0 25px 50px rgba(0,0,0,0.5);
+  }
+  .mockup-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; }
+  .mockup-header h4 { font-size: 1rem; font-weight: 700; }
+  .mockup-header span { font-size: 0.75rem; color: #94a3b8; }
+  .stat-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.8rem; margin-bottom: 1rem; }
+  .mini-stat {
+    background: rgba(255,255,255,0.06); border-radius: 0.7rem; padding: 0.8rem 0.5rem;
+    text-align: center;
+  }
+  .mini-stat .n { font-family: 'Poppins', sans-serif; font-size: 1.4rem; font-weight: 800; }
+  .mini-stat .l { font-size: 0.65rem; color: #94a3b8; margin-top: 0.1rem; }
+  .risk-list { display: flex; flex-direction: column; gap: 0.6rem; }
+  .risk-item {
+    background: rgba(255,255,255,0.05); border-radius: 0.6rem; padding: 0.7rem 0.9rem;
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.85rem;
+  }
+  .risk-badge {
+    padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.72rem; font-weight: 700;
+  }
+  .badge-red { background: rgba(239,68,68,0.2); color: #ef4444; }
+  .badge-yellow { background: rgba(234,179,8,0.2); color: #eab308; }
+  .badge-green { background: rgba(34,197,94,0.2); color: #22c55e; }
+
+  /* Profile mockup */
+  .profile-card { max-width: 400px; margin: 0 auto; }
+  .profile-header {
+    background: linear-gradient(135deg, #1e3a5f, #0f172a);
+    border-radius: 1.2rem; padding: 1.5rem; text-align: center; margin-bottom: 1rem;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .avatar { width: 60px; height: 60px; background: #3b82f6; border-radius: 50%; margin: 0 auto 0.8rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; }
+  .bar-list { display: flex; flex-direction: column; gap: 0.8rem; }
+  .bar-item label { display: flex; justify-content: space-between; font-size: 0.82rem; color: #cbd5e1; margin-bottom: 0.3rem; }
+  .bar-bg { background: rgba(255,255,255,0.1); border-radius: 999px; height: 7px; }
+  .bar-fill { height: 100%; border-radius: 999px; }
+
+  /* Alert mockup */
+  .alert-card {
+    max-width: 400px; margin: 0 auto;
+    background: rgba(239,68,68,0.08); border: 2px solid rgba(239,68,68,0.3);
+    border-radius: 1.2rem; padding: 2rem; text-align: center;
+  }
+  .alert-icon { font-size: 3rem; margin-bottom: 1rem; animation: shake 0.8s infinite; }
+  .alert-card h3 { font-family: 'Poppins', sans-serif; font-size: 1.3rem; font-weight: 800; color: #ef4444; }
+  .alert-score { font-size: 2.5rem; font-weight: 900; color: #ef4444; margin: 0.5rem 0; font-family: 'Poppins', sans-serif; }
+  .alert-actions { display: flex; gap: 0.8rem; justify-content: center; margin-top: 1.5rem; flex-wrap: wrap; }
+  .alert-btn { padding: 0.6rem 1.2rem; border-radius: 999px; font-size: 0.85rem; font-weight: 700; border: none; cursor: pointer; }
+  .ab-call { background: #22c55e; color: #fff; }
+  .ab-sms { background: #3b82f6; color: #fff; }
+  .ab-visit { background: #eab308; color: #000; }
+
+  /* ---- FLOW SECTION ---- */
+  #flow { background: linear-gradient(180deg, #0f172a 0%, #1e3a5f 100%); }
+  .flow-steps { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 0; margin-top: 3rem; }
+  .flow-step { text-align: center; flex: 0 0 auto; padding: 0 1rem; }
+  .flow-circle {
+    width: 80px; height: 80px; border-radius: 50%; border: 3px solid #3b82f6;
+    background: rgba(59,130,246,0.1); display: flex; align-items: center; justify-content: center;
+    font-size: 1.8rem; margin: 0 auto 0.8rem;
+    transition: all 0.3s;
+  }
+  .flow-step:hover .flow-circle { background: #3b82f6; transform: scale(1.1); }
+  .flow-step h4 { font-size: 0.82rem; font-weight: 600; color: #cbd5e1; max-width: 90px; margin: 0 auto; }
+  .flow-arrow { color: #3b82f6; font-size: 1.5rem; padding: 0 0.5rem; margin-top: -2.5rem; }
+
+  /* ---- FEATURES ---- */
+  #features { background: #0f172a; }
+  .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-top: 3rem; }
+  .feat-card {
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 1rem; padding: 1.8rem; transition: all 0.3s;
+  }
+  .feat-card:hover { background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.3); transform: translateY(-4px); }
+  .feat-icon { font-size: 2rem; margin-bottom: 1rem; }
+  .feat-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .feat-card p { font-size: 0.85rem; color: #94a3b8; line-height: 1.6; }
+
+  /* ---- BENEFITS ---- */
+  #benefits { background: linear-gradient(180deg, #1e3a5f 0%, #0f172a 100%); }
+  .benefits-list { display: flex; flex-direction: column; gap: 1rem; margin-top: 2.5rem; max-width: 600px; }
+  .benefit-row { display: flex; align-items: flex-start; gap: 1rem; }
+  .benefit-check { width: 28px; height: 28px; background: rgba(34,197,94,0.15); border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #22c55e; font-size: 0.9rem; margin-top: 2px; }
+  .benefit-text h4 { font-size: 1rem; font-weight: 600; }
+  .benefit-text p { font-size: 0.85rem; color: #94a3b8; margin-top: 0.2rem; }
+
+  /* ---- FOOTER ---- */
+  footer {
+    background: #020617; padding: 3rem 1.5rem; text-align: center; border-top: 1px solid rgba(255,255,255,0.06);
+  }
+  .footer-badge {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3);
+    color: #22c55e; padding: 0.5rem 1.2rem; border-radius: 999px; font-size: 0.85rem; font-weight: 600; margin-bottom: 1.5rem;
+  }
+  footer p { color: #475569; font-size: 0.85rem; }
+  footer strong { color: #94a3b8; }
+
+  /* ANIMATIONS */
+  @keyframes fadeDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pulse-led {
+    0%, 100% { box-shadow: 0 0 20px var(--c), 0 0 40px var(--c); }
+    50% { box-shadow: 0 0 10px var(--c); }
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(8px); }
+  }
+  @keyframes shake {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-8deg); }
+    75% { transform: rotate(8deg); }
+  }
+
+  /* scroll reveal */
+  .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.7s ease, transform 0.7s ease; }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 600px) {
+    .flow-arrow { display: none; }
+    .flow-steps { gap: 1rem; }
+    .led-wrapper { gap: 1.5rem; }
+    .led-box { width: 160px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-badge">🏆 উপজেলা পর্যায়ে প্রথম স্থান অর্জন</div>
+  <h1>Dropout <span class="ai">AI</span> <span class="alert">Alert</span> App</h1>
+  <p class="hero-tagline">ঝরে পড়ার আগেই সতর্কতা</p>
+  <p class="hero-desc">
+    কৃত্রিম বুদ্ধিমত্তার সাহায্যে শিক্ষার্থীর ঝরে পড়ার ঝুঁকি আগেই শনাক্ত করে —
+    শিক্ষক ও অভিভাবককে সতর্ক করে প্রতিটি শিশুর ভবিষ্যৎ নিশ্চিত করা।
+  </p>
+  <div class="hero-cta">
+    <button class="btn btn-primary" onclick="document.getElementById('demo').scrollIntoView({behavior:'smooth'})">ঝুঁকি পরীক্ষা করুন →</button>
+    <button class="btn btn-outline" onclick="document.getElementById('app').scrollIntoView({behavior:'smooth'})">App দেখুন</button>
+  </div>
+  <div class="hero-stats">
+    <div class="stat-item"><div class="stat-num">82%</div><div class="stat-label">সঠিক পূর্বাভাস</div></div>
+    <div class="stat-item"><div class="stat-num">৬টি</div><div class="stat-label">ডেটা পয়েন্ট</div></div>
+    <div class="stat-item"><div class="stat-num">৩টি</div><div class="stat-label">সতর্কতা স্তর</div></div>
+    <div class="stat-item"><div class="stat-num">রিয়েলটাইম</div><div class="stat-label">অভিভাবক সংযোগ</div></div>
+  </div>
+  <div class="scroll-hint">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+    নিচে স্ক্রোল করুন
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section id="problem">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">সমস্যা</div>
+      <h2 class="section-title">কেন শিক্ষার্থী ঝরে পড়ে?</h2>
+      <p class="section-sub">বাংলাদেশে প্রতি বছর হাজার হাজার শিক্ষার্থী স্কুল থেকে ঝরে পড়ে। অধিকাংশ ক্ষেত্রে শিক্ষক বা অভিভাবক তখনই বুঝতে পারেন যখন অনেক দেরি হয়ে যায়।</p>
+    </div>
+    <div class="problem-grid">
+      <div class="problem-card reveal"><div class="problem-icon">💸</div><h3>দারিদ্র্য</h3><p>পরিবারের আর্থিক সংকটে লেখাপড়া বন্ধ</p></div>
+      <div class="problem-card reveal"><div class="problem-icon">🏠</div><h3>পারিবারিক সমস্যা</h3><p>পারিবারিক কলহ বা বিচ্ছেদের প্রভাব</p></div>
+      <div class="problem-card reveal"><div class="problem-icon">📉</div><h3>দুর্বল ফলাফল</h3><p>পড়ায় পিছিয়ে থেকে আগ্রহ হারানো</p></div>
+      <div class="problem-card reveal"><div class="problem-icon">📵</div><h3>অতিরিক্ত মোবাইল</h3><p>প্রযুক্তির অপব্যবহারে মনোযোগ নষ্ট</p></div>
+      <div class="problem-card reveal"><div class="problem-icon">🚫</div><h3>অনুপস্থিতি</h3><p>ধারাবাহিক অনুপস্থিতি থেকে বিচ্ছিন্নতা</p></div>
+      <div class="problem-card reveal"><div class="problem-icon">😔</div><h3>মানসিক চাপ</h3><p>চাপে পড়ে স্কুল ছেড়ে দেওয়া</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- INPUT DATA -->
+<section id="inputs">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">ইনপুট ডেটা</div>
+      <h2 class="section-title">কী কী তথ্য সংগ্রহ করে?</h2>
+      <p class="section-sub">আমাদের AI সিস্টেম শিক্ষার্থীর ৬টি গুরুত্বপূর্ণ সূচক বিশ্লেষণ করে একটি সম্পূর্ণ চিত্র তৈরি করে।</p>
+    </div>
+    <div class="inputs-grid">
+      <div class="input-card reveal"><div class="input-icon">✅</div><h3>উপস্থিতি</h3><p>প্রতিদিনের স্কুল উপস্থিতি ট্র্যাকিং</p></div>
+      <div class="input-card reveal"><div class="input-icon">📊</div><h3>পরীক্ষার ফলাফল</h3><p>পরীক্ষায় প্রাপ্ত নম্বর ও ট্রেন্ড</p></div>
+      <div class="input-card reveal"><div class="input-icon">👨‍👩‍👧</div><h3>পারিবারিক অবস্থা</h3><p>পরিবারের আর্থিক ও সামাজিক অবস্থান</p></div>
+      <div class="input-card reveal"><div class="input-icon">😊</div><h3>আচরণ</h3><p>শ্রেণিকক্ষে আচরণ ও মনোযোগ</p></div>
+      <div class="input-card reveal"><div class="input-icon">📝</div><h3>হোমওয়ার্ক</h3><p>বাড়ির কাজ সম্পন্ন করার হার</p></div>
+      <div class="input-card reveal"><div class="input-icon">📱</div><h3>মোবাইল ব্যবহার</h3><p>অতিরিক্ত মোবাইল ব্যবহারের প্যাটার্ন</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- LED SYSTEM -->
+<section id="led">
+  <div class="container">
+    <div class="reveal" style="text-align:center">
+      <div class="section-label">সতর্কতা সিস্টেম</div>
+      <h2 class="section-title">LED Alert System</h2>
+      <p class="section-sub" style="max-width:550px;margin:0.75rem auto 0">তিনটি রঙের সংকেতে শিক্ষার্থীর ঝুঁকির মাত্রা তাৎক্ষণিকভাবে বোঝা যায়।</p>
+    </div>
+    <div class="led-wrapper">
+      <div class="led-box led-green reveal">
+        <div class="led-dot led-green"></div>
+        <div class="led-label">নিরাপদ</div>
+        <div class="led-range">স্কোর: ০–৩০</div>
+        <div class="led-status">✓ ভালো অবস্থা</div>
+      </div>
+      <div class="led-box led-yellow reveal">
+        <div class="led-dot led-yellow"></div>
+        <div class="led-label">ঝুঁকিতে</div>
+        <div class="led-range">স্কোর: ৩১–৬০</div>
+        <div class="led-status">⚠ নজর রাখুন</div>
+      </div>
+      <div class="led-box led-red reveal">
+        <div class="led-dot led-red"></div>
+        <div class="led-label">উচ্চ ঝুঁকি</div>
+        <div class="led-range">স্কোর: ৬১–১০০</div>
+        <div class="led-status">🚨 দ্রুত ব্যবস্থা নিন</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DEMO CALCULATOR -->
+<section id="demo">
+  <div class="container">
+    <div class="reveal" style="text-align:center">
+      <div class="section-label">ইন্টারেক্টিভ ডেমো</div>
+      <h2 class="section-title">ঝুঁকি স্কোর ক্যালকুলেটর</h2>
+      <p class="section-sub" style="max-width:550px;margin:0.75rem auto 0">স্লাইডার টেনে একটি শিক্ষার্থীর পরিস্থিতি সেট করুন এবং AI-এর ঝুঁকি স্কোর দেখুন।</p>
+    </div>
+    <div class="demo-card reveal">
+      <h3>🎓 শিক্ষার্থীর তথ্য ইনপুট করুন</h3>
+      <div class="slider-row">
+        <label>উপস্থিতি <span id="v1">৫০%</span></label>
+        <input type="range" id="s1" min="0" max="100" value="50" oninput="updateScore()">
+      </div>
+      <div class="slider-row">
+        <label>পরীক্ষার ফলাফল <span id="v2">৫০%</span></label>
+        <input type="range" id="s2" min="0" max="100" value="50" oninput="updateScore()">
+      </div>
+      <div class="slider-row">
+        <label>হোমওয়ার্ক সম্পন্ন <span id="v3">৫০%</span></label>
+        <input type="range" id="s3" min="0" max="100" value="50" oninput="updateScore()">
+      </div>
+      <div class="slider-row">
+        <label>আচরণ স্কোর <span id="v4">৫০%</span></label>
+        <input type="range" id="s4" min="0" max="100" value="50" oninput="updateScore()">
+      </div>
+      <div class="slider-row">
+        <label>পারিবারিক আয় সূচক <span id="v5">৫০%</span></label>
+        <input type="range" id="s5" min="0" max="100" value="50" oninput="updateScore()">
+      </div>
+      <div class="score-display">
+        <div class="score-num" id="scoreNum">৫০</div>
+        <div class="score-label" id="scoreLabel">⚠ ঝুঁকিতে আছে</div>
+        <div class="score-bar-bg"><div class="score-bar" id="scoreBar" style="width:50%;background:#eab308"></div></div>
+        <p style="font-size:0.8rem;color:#64748b;margin-top:0.8rem">স্কোর যত বেশি → ঝুঁকি তত বেশি</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- APP INTERFACE -->
+<section id="app">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">App Interface</div>
+      <h2 class="section-title">তিনটি মূল ইন্টারফেস</h2>
+    </div>
+    <div class="app-tabs reveal" style="margin-top:2rem">
+      <button class="app-tab active" onclick="switchTab('dashboard',this)">📊 Dashboard</button>
+      <button class="app-tab" onclick="switchTab('profile',this)">👤 Student Profile</button>
+      <button class="app-tab" onclick="switchTab('alertpanel',this)">🚨 Alert Panel</button>
+    </div>
+
+    <div class="app-panel active reveal" id="panel-dashboard">
+      <div class="mockup-phone">
+        <div class="mockup-header"><h4>📊 Dashboard</h4><span>আজকের তথ্য</span></div>
+        <div class="stat-row">
+          <div class="mini-stat"><div class="n" style="color:#3b82f6">250</div><div class="l">মোট শিক্ষার্থী</div></div>
+          <div class="mini-stat"><div class="n" style="color:#22c55e">78%</div><div class="l">উপস্থিতি হার</div></div>
+          <div class="mini-stat"><div class="n" style="color:#ef4444">12</div><div class="l">ঝুঁকিপূর্ণ</div></div>
+        </div>
+        <p style="font-size:0.8rem;color:#64748b;margin-bottom:0.8rem">⚠ উচ্চ ঝুঁকিপূর্ণ শিক্ষার্থী</p>
+        <div class="risk-list">
+          <div class="risk-item"><span>রাহিম হোসেন — ৬ষ্ঠ শ্রেণি</span><span class="risk-badge badge-red">৮২/১০০</span></div>
+          <div class="risk-item"><span>নাফিসা বেগম — ৭ম শ্রেণি</span><span class="risk-badge badge-red">৭৫/১০০</span></div>
+          <div class="risk-item"><span>করিম মিয়া — ৫ম শ্রেণি</span><span class="risk-badge badge-yellow">৫৮/১০০</span></div>
+          <div class="risk-item"><span>সুমাইয়া খানম — ৮ম</span><span class="risk-badge badge-green">২২/১০০</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="app-panel" id="panel-profile">
+      <div style="max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:1.2rem;">
+
+        <!-- Profile Header -->
+        <div style="background:linear-gradient(135deg,#1e3a5f,#0f172a);border:1px solid rgba(255,255,255,0.1);border-radius:1.2rem;padding:1.5rem;display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap;">
+          <div style="width:64px;height:64px;background:#3b82f6;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.8rem;flex-shrink:0;">👦</div>
+          <div style="flex:1;">
+            <h3 style="font-size:1.15rem;font-weight:700;">রাহিম হোসেন</h3>
+            <p style="color:#94a3b8;font-size:0.85rem;">৬ষ্ঠ শ্রেণি | রোল: ১২ | বয়স: ১১</p>
+            <div style="display:flex;gap:0.5rem;margin-top:0.6rem;flex-wrap:wrap;">
+              <span style="background:rgba(239,68,68,0.15);color:#ef4444;padding:0.25rem 0.7rem;border-radius:999px;font-size:0.78rem;font-weight:700;">🚨 ঝুঁকি: ৮২/১০০</span>
+              <span style="background:rgba(255,255,255,0.07);color:#94a3b8;padding:0.25rem 0.7rem;border-radius:999px;font-size:0.78rem;">উপস্থিতি: ৪৫%</span>
+              <span style="background:rgba(255,255,255,0.07);color:#94a3b8;padding:0.25rem 0.7rem;border-radius:999px;font-size:0.78rem;">ফলাফল: ৪২%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Performance Bars -->
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:1rem;padding:1.4rem;">
+          <h4 style="font-size:0.9rem;font-weight:700;margin-bottom:1rem;color:#cbd5e1;">📊 পারফরম্যান্স সূচক</h4>
+          <div class="bar-list">
+            <div class="bar-item"><label><span>উপস্থিতি</span><span style="color:#ef4444">৪৫%</span></label><div class="bar-bg"><div class="bar-fill" style="width:45%;background:#ef4444;"></div></div></div>
+            <div class="bar-item"><label><span>পরীক্ষার ফলাফল</span><span style="color:#eab308">৪২%</span></label><div class="bar-bg"><div class="bar-fill" style="width:42%;background:#eab308;"></div></div></div>
+            <div class="bar-item"><label><span>হোমওয়ার্ক</span><span style="color:#ef4444">৩০%</span></label><div class="bar-bg"><div class="bar-fill" style="width:30%;background:#ef4444;"></div></div></div>
+            <div class="bar-item"><label><span>আচরণ</span><span style="color:#22c55e">৭০%</span></label><div class="bar-bg"><div class="bar-fill" style="width:70%;background:#22c55e;"></div></div></div>
+          </div>
+        </div>
+
+        <!-- Attendance Calendar -->
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:1rem;padding:1.4rem;">
+          <h4 style="font-size:0.9rem;font-weight:700;margin-bottom:0.3rem;color:#cbd5e1;">📅 উপস্থিতি ক্যালেন্ডার — জুন ২০২৫</h4>
+          <p style="font-size:0.75rem;color:#475569;margin-bottom:1rem;">
+            <span style="display:inline-flex;align-items:center;gap:4px;margin-right:10px;"><span style="width:12px;height:12px;background:#22c55e;border-radius:3px;display:inline-block;"></span>উপস্থিত</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;margin-right:10px;"><span style="width:12px;height:12px;background:#ef4444;border-radius:3px;display:inline-block;"></span>অনুপস্থিত</span>
+            <span style="display:inline-flex;align-items:center;gap:4px;"><span style="width:12px;height:12px;background:#334155;border-radius:3px;display:inline-block;"></span>ছুটি</span>
+          </p>
+          <div id="attendanceCalendar" style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;"></div>
+        </div>
+
+        <!-- Progress Timeline (SVG Chart) -->
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:1rem;padding:1.4rem;">
+          <h4 style="font-size:0.9rem;font-weight:700;margin-bottom:1rem;color:#cbd5e1;">📈 ঝুঁকি স্কোর টাইমলাইন</h4>
+          <svg viewBox="0 0 500 160" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;">
+            <!-- Grid lines -->
+            <line x1="40" y1="20" x2="480" y2="20" stroke="#1e293b" stroke-width="1"/>
+            <line x1="40" y1="55" x2="480" y2="55" stroke="#1e293b" stroke-width="1"/>
+            <line x1="40" y1="90" x2="480" y2="90" stroke="#1e293b" stroke-width="1"/>
+            <line x1="40" y1="125" x2="480" y2="125" stroke="#1e293b" stroke-width="1"/>
+            <!-- Y labels -->
+            <text x="30" y="24" fill="#475569" font-size="10" text-anchor="end">১০০</text>
+            <text x="30" y="59" fill="#475569" font-size="10" text-anchor="end">৭৫</text>
+            <text x="30" y="94" fill="#475569" font-size="10" text-anchor="end">৫০</text>
+            <text x="30" y="129" fill="#475569" font-size="10" text-anchor="end">২৫</text>
+            <!-- Zone fills -->
+            <rect x="40" y="20" width="440" height="35" fill="rgba(239,68,68,0.06)" rx="2"/>
+            <rect x="40" y="55" width="440" height="35" fill="rgba(234,179,8,0.06)" rx="2"/>
+            <rect x="40" y="90" width="440" height="70" fill="rgba(34,197,94,0.06)" rx="2"/>
+            <!-- Trend line -->
+            <polyline points="70,128 140,110 210,105 280,90 350,75 420,52 480,44"
+              fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <!-- Area fill -->
+            <polygon points="70,128 140,110 210,105 280,90 350,75 420,52 480,44 480,140 70,140"
+              fill="rgba(239,68,68,0.08)"/>
+            <!-- Data points -->
+            <circle cx="70" cy="128" r="5" fill="#22c55e" stroke="#0f172a" stroke-width="2"/>
+            <circle cx="140" cy="110" r="5" fill="#22c55e" stroke="#0f172a" stroke-width="2"/>
+            <circle cx="210" cy="105" r="5" fill="#eab308" stroke="#0f172a" stroke-width="2"/>
+            <circle cx="280" cy="90" r="5" fill="#eab308" stroke="#0f172a" stroke-width="2"/>
+            <circle cx="350" cy="75" r="5" fill="#ef4444" stroke="#0f172a" stroke-width="2"/>
+            <circle cx="420" cy="52" r="5" fill="#ef4444" stroke="#0f172a" stroke-width="2"/>
+            <circle cx="480" cy="44" r="6" fill="#ef4444" stroke="#fff" stroke-width="2.5"/>
+            <!-- Month labels -->
+            <text x="70" y="155" fill="#475569" font-size="9" text-anchor="middle">জানু</text>
+            <text x="140" y="155" fill="#475569" font-size="9" text-anchor="middle">ফেব্রু</text>
+            <text x="210" y="155" fill="#475569" font-size="9" text-anchor="middle">মার্চ</text>
+            <text x="280" y="155" fill="#475569" font-size="9" text-anchor="middle">এপ্রিল</text>
+            <text x="350" y="155" fill="#475569" font-size="9" text-anchor="middle">মে</text>
+            <text x="420" y="155" fill="#475569" font-size="9" text-anchor="middle">জুন</text>
+            <text x="480" y="155" fill="#ef4444" font-size="9" text-anchor="middle" font-weight="bold">এখন</text>
+            <!-- Score tooltip on last point -->
+            <rect x="450" y="28" width="40" height="18" rx="4" fill="#ef4444"/>
+            <text x="470" y="41" fill="white" font-size="10" text-anchor="middle" font-weight="bold">৮২</text>
+          </svg>
+          <p style="font-size:0.75rem;color:#475569;margin-top:0.3rem;text-align:center;">জানুয়ারি থেকে ক্রমশ ঝুঁকি বাড়ছে ↑</p>
+        </div>
+
+        <!-- Teacher Notes -->
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:1rem;padding:1.4rem;">
+          <h4 style="font-size:0.9rem;font-weight:700;margin-bottom:1rem;color:#cbd5e1;">🗒️ শিক্ষকের মন্তব্য</h4>
+          <div id="notesList" style="display:flex;flex-direction:column;gap:0.7rem;margin-bottom:1rem;max-height:200px;overflow-y:auto;"></div>
+          <div style="display:flex;gap:0.6rem;">
+            <input id="noteInput" type="text" placeholder="নতুন মন্তব্য লিখুন..." style="flex:1;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:0.6rem;padding:0.6rem 0.9rem;color:#fff;font-size:0.85rem;font-family:'Hind Siliguri',sans-serif;outline:none;" onkeydown="if(event.key==='Enter')addNote()">
+            <button onclick="addNote()" style="background:#3b82f6;color:#fff;border:none;border-radius:0.6rem;padding:0.6rem 1rem;font-weight:700;cursor:pointer;font-size:0.85rem;white-space:nowrap;">+ যোগ করুন</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="app-panel" id="panel-alertpanel">
+      <div style="max-width:520px;margin:0 auto;display:flex;flex-direction:column;gap:1.2rem;">
+
+        <!-- Alert Status Card -->
+        <div style="background:rgba(239,68,68,0.08);border:2px solid rgba(239,68,68,0.35);border-radius:1.3rem;padding:1.8rem;text-align:center;">
+          <div style="font-size:2.8rem;animation:shake 0.8s infinite;">🚨</div>
+          <h3 style="font-family:'Poppins',sans-serif;font-size:1.25rem;font-weight:800;color:#ef4444;margin-top:0.6rem;">উচ্চ ঝুঁকি সতর্কতা!</h3>
+          <p style="color:#94a3b8;font-size:0.88rem;margin-top:0.3rem;">রাহিম হোসেন — ৬ষ্ঠ শ্রেণি | রোল: ১২</p>
+          <div style="font-family:'Poppins',sans-serif;font-size:3rem;font-weight:900;color:#ef4444;margin:0.4rem 0;">৮২/১০০</div>
+          <p style="color:#ef4444;font-weight:600;font-size:0.88rem;">High Risk of Dropout</p>
+          <div style="display:flex;gap:0.5rem;justify-content:center;flex-wrap:wrap;margin-top:0.8rem;">
+            <span style="background:rgba(239,68,68,0.12);color:#fca5a5;padding:0.25rem 0.7rem;border-radius:999px;font-size:0.75rem;">উপস্থিতি ৪৫%</span>
+            <span style="background:rgba(239,68,68,0.12);color:#fca5a5;padding:0.25rem 0.7rem;border-radius:999px;font-size:0.75rem;">পরীক্ষায় ফেল ৩ বার</span>
+            <span style="background:rgba(239,68,68,0.12);color:#fca5a5;padding:0.25rem 0.7rem;border-radius:999px;font-size:0.75rem;">হোমওয়ার্ক ৩০%</span>
+          </div>
+        </div>
+
+        <!-- Parent Number Input -->
+        <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:1rem;padding:1.4rem;">
+          <h4 style="font-size:0.88rem;font-weight:700;color:#cbd5e1;margin-bottom:0.3rem;">📞 অভিভাবকের মোবাইল নম্বর</h4>
+          <p style="font-size:0.75rem;color:#475569;margin-bottom:0.9rem;">নম্বর একবার save করলে পরবর্তীতে আর দিতে হবে না</p>
+          <div style="display:flex;gap:0.6rem;">
+            <div style="position:relative;flex:1;">
+              <span style="position:absolute;left:0.8rem;top:50%;transform:translateY(-50%);color:#64748b;font-size:0.85rem;">🇧🇩 +88</span>
+              <input id="parentNumber" type="tel" maxlength="11" placeholder="01XXXXXXXXX"
+                style="width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:0.6rem;padding:0.65rem 0.9rem 0.65rem 3.8rem;color:#fff;font-size:0.9rem;font-family:'Hind Siliguri',sans-serif;outline:none;"
+                oninput="checkNumber()">
+            </div>
+            <button onclick="saveNumber()" id="saveBtn"
+              style="background:#22c55e;color:#fff;border:none;border-radius:0.6rem;padding:0.65rem 1.1rem;font-weight:700;cursor:pointer;font-size:0.85rem;white-space:nowrap;transition:all 0.2s;">
+              💾 Save
+            </button>
+          </div>
+          <div id="savedBadge" style="display:none;margin-top:0.7rem;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.25);border-radius:0.5rem;padding:0.5rem 0.8rem;font-size:0.8rem;color:#22c55e;">
+            ✅ নম্বর সেভ হয়েছে: <strong id="savedNumDisplay"></strong>
+          </div>
+        </div>
+
+        <!-- SMS Preview Box -->
+        <div style="background:rgba(59,130,246,0.06);border:1px solid rgba(59,130,246,0.2);border-radius:1rem;padding:1.3rem;">
+          <h4 style="font-size:0.82rem;font-weight:700;color:#93c5fd;margin-bottom:0.7rem;">📩 SMS Preview</h4>
+          <div id="smsPreview" style="background:rgba(0,0,0,0.3);border-radius:0.6rem;padding:0.9rem;font-size:0.82rem;color:#cbd5e1;line-height:1.7;font-style:italic;"></div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.8rem;">
+          <button id="smsBtn" onclick="sendSMS()"
+            style="background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;border-radius:0.8rem;padding:1rem;font-weight:700;cursor:pointer;font-size:0.9rem;font-family:'Hind Siliguri',sans-serif;transition:all 0.2s;display:flex;align-items:center;justify-content:center;gap:0.5rem;">
+            📱 SMS Alert পাঠান
+          </button>
+          <a id="callBtn" href="#"
+            style="background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:none;border-radius:0.8rem;padding:1rem;font-weight:700;font-size:0.9rem;font-family:'Hind Siliguri',sans-serif;text-decoration:none;display:flex;align-items:center;justify-content:center;gap:0.5rem;transition:all 0.2s;">
+            📞 Voice Call করুন
+          </a>
+        </div>
+
+        <!-- SMS Status Log -->
+        <div id="smsLog" style="display:none;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:1rem;padding:1.2rem;">
+          <h4 style="font-size:0.82rem;font-weight:700;color:#94a3b8;margin-bottom:0.8rem;">📋 SMS লগ</h4>
+          <div id="smsLogList" style="display:flex;flex-direction:column;gap:0.5rem;max-height:160px;overflow-y:auto;"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FLOW -->
+<section id="flow">
+  <div class="container">
+    <div class="reveal" style="text-align:center">
+      <div class="section-label">প্রক্রিয়া</div>
+      <h2 class="section-title">AI Process Flowchart</h2>
+    </div>
+    <div class="flow-steps reveal">
+      <div class="flow-step"><div class="flow-circle">📋</div><h4>তথ্য সংগ্রহ</h4></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="flow-circle">🤖</div><h4>AI বিশ্লেষণ</h4></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="flow-circle">📈</div><h4>ঝুঁকি নির্ধারণ</h4></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="flow-circle">🔔</div><h4>সতর্কবার্তা</h4></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="flow-circle">👨‍🏫</div><h4>শিক্ষক ব্যবস্থা</h4></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step"><div class="flow-circle">👨‍👩‍👧</div><h4>অভিভাবক</h4></div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="container">
+    <div class="reveal">
+      <div class="section-label">ভবিষ্যৎ পরিকল্পনা</div>
+      <h2 class="section-title">বিশেষ সুবিধাসমূহ</h2>
+    </div>
+    <div class="features-grid">
+      <div class="feat-card reveal"><div class="feat-icon">👁️</div><h3>Face Recognition Attendance</h3><p>মুখ চেনার প্রযুক্তি দিয়ে স্বয়ংক্রিয় উপস্থিতি নিবন্ধন</p></div>
+      <div class="feat-card reveal"><div class="feat-icon">🎙️</div><h3>Voice AI Parent Call</h3><p>AI-চালিত কণ্ঠস্বরে অভিভাবককে সতর্ক করা</p></div>
+      <div class="feat-card reveal"><div class="feat-icon">📨</div><h3>SMS Alert</h3><p>তাৎক্ষণিক SMS বার্তায় অভিভাবককে অবহিত করা</p></div>
+      <div class="feat-card reveal"><div class="feat-icon">🗄️</div><h3>National Education Database</h3><p>জাতীয় শিক্ষা ডেটাবেজের সাথে সরাসরি সংযোগ</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- BENEFITS -->
+<section id="benefits">
+  <div class="container">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center;flex-wrap:wrap" class="reveal">
+      <div>
+        <div class="section-label">উপকারিতা</div>
+        <h2 class="section-title">কী পরিবর্তন আনবে?</h2>
+        <div class="benefits-list" style="margin-top:2rem">
+          <div class="benefit-row"><div class="benefit-check">✓</div><div class="benefit-text"><h4>ঝরে পড়া কমবে</h4><p>আগাম সতর্কতায় শিক্ষার্থীকে ধরে রাখা সম্ভব</p></div></div>
+          <div class="benefit-row"><div class="benefit-check">✓</div><div class="benefit-text"><h4>শিক্ষার মান উন্নত হবে</h4><p>দুর্বল শিক্ষার্থীদের বিশেষ মনোযোগ দেওয়া যাবে</p></div></div>
+          <div class="benefit-row"><div class="benefit-check">✓</div><div class="benefit-text"><h4>অভিভাবক সচেতন হবেন</h4><p>রিয়েলটাইম তথ্যে অভিভাবক সক্রিয় থাকবেন</p></div></div>
+          <div class="benefit-row"><div class="benefit-check">✓</div><div class="benefit-text"><h4>শিক্ষার্থীদের দ্রুত সহায়তা</h4><p>সঠিক সময়ে সঠিক হস্তক্ষেপ সম্ভব হবে</p></div></div>
+          <div class="benefit-row"><div class="benefit-check">✓</div><div class="benefit-text"><h4>ডিজিটাল বাংলাদেশ গঠন</h4><p>স্মার্ট শিক্ষা ব্যবস্থাপনায় দেশ এগিয়ে যাবে</p></div></div>
+        </div>
+      </div>
+      <div style="text-align:center">
+        <div style="background:rgba(59,130,246,0.08);border:2px solid rgba(59,130,246,0.2);border-radius:1.5rem;padding:2.5rem">
+          <div style="font-size:3.5rem;margin-bottom:1rem">🎯</div>
+          <div style="font-family:'Poppins',sans-serif;font-size:1.1rem;font-weight:700;margin-bottom:0.5rem">আমাদের লক্ষ্য</div>
+          <p style="color:#94a3b8;font-size:0.9rem;line-height:1.7">"Every Child Matters —<br>AI Will Save Education"</p>
+          <div style="margin-top:1.5rem;padding:1rem;background:rgba(34,197,94,0.1);border-radius:0.8rem;border:1px solid rgba(34,197,94,0.2)">
+            <div style="font-size:0.85rem;color:#22c55e;font-weight:600">প্রতিটি শিশু শিক্ষার মূল ধারায় থাকবে</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-badge">🏆 উপজেলা পর্যায়ে প্রথম স্থান অর্জিত</div>
+  <p style="font-size:1rem;margin-bottom:0.5rem"><strong>Dropout AI Alert App</strong></p>
+  <p>ঝরে পড়ার আগেই সতর্কতা — AI-এর মাধ্যমে শিক্ষার্থীর ভবিষ্যৎ নিশ্চিত করা</p>
+  <p style="margin-top:1rem;color:#334155;font-size:0.78rem">স্মার্ট বাংলাদেশ • ডিজিটাল শিক্ষা • Every Child Matters</p>
+</footer>
+
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(e => { if(e.isIntersecting) { e.target.classList.add('visible'); } });
+  }, { threshold: 0.12 });
+  reveals.forEach(r => io.observe(r));
+
+  // Tab switching
+  function switchTab(id, btn) {
+    document.querySelectorAll('.app-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.app-tab').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel-' + id).classList.add('active');
+    btn.classList.add('active');
+    if(id === 'profile') { buildCalendar(); renderNotes(); }
+  }
+
+  // ---- ATTENDANCE CALENDAR ----
+  const dayNames = ['রবি','সোম','মঙ্গল','বুধ','বৃহ','শুক্র','শনি'];
+  // 1=present, 0=absent, -1=holiday, June 2025 starts on Sunday
+  const attendance = [
+    -1, 1, 1, 0, 1, 1, -1,
+    -1, 1, 0, 0, 1, 1, -1,
+    -1, 0, 1, 1, 0, 1, -1,
+    -1, 1, 1, 0, 1, 0, -1,
+    -1, 1, null, null, null, null, null
+  ];
+  function buildCalendar() {
+    const el = document.getElementById('attendanceCalendar');
+    if(!el || el.children.length > 0) return;
+    // Day headers
+    dayNames.forEach(d => {
+      const h = document.createElement('div');
+      h.textContent = d;
+      h.style.cssText = 'font-size:0.65rem;color:#475569;text-align:center;padding:2px 0;font-weight:600;';
+      el.appendChild(h);
+    });
+    let day = 1;
+    attendance.forEach(v => {
+      const cell = document.createElement('div');
+      if(v === null) {
+        cell.style.cssText = 'background:transparent;';
+      } else if(v === -1) {
+        cell.style.cssText = 'background:#1e293b;border-radius:4px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:#334155;';
+        cell.textContent = '—';
+      } else {
+        const bg = v === 1 ? '#22c55e' : '#ef4444';
+        const icon = v === 1 ? '✓' : '✗';
+        cell.style.cssText = `background:${bg}22;border:1px solid ${bg}44;border-radius:4px;aspect-ratio:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:1px;cursor:default;`;
+        cell.innerHTML = `<span style="font-size:0.6rem;color:#94a3b8;">${day}</span><span style="font-size:0.65rem;color:${bg};font-weight:700;">${icon}</span>`;
+        day++;
+      }
+      el.appendChild(cell);
+    });
+  }
+
+  // ---- TEACHER NOTES ----
+  const notes = [
+    { text: 'ছাত্রটি গত সপ্তাহে ৩ দিন অনুপস্থিত ছিল। কারণ জানা যায়নি।', time: '৫ জুন, ২০২৫', color: '#ef4444' },
+    { text: 'পরীক্ষায় মনোযোগ দেয় না। বাড়িতে পড়ানোর সুযোগ কম।', time: '২ জুন, ২০২৫', color: '#eab308' },
+    { text: 'অভিভাবককে ফোন করা হয়েছে, সাড়া পাওয়া যায়নি।', time: '২৮ মে, ২০২৫', color: '#94a3b8' },
+  ];
+  function renderNotes() {
+    const list = document.getElementById('notesList');
+    if(!list) return;
+    list.innerHTML = '';
+    notes.forEach(n => {
+      const d = document.createElement('div');
+      d.style.cssText = `background:rgba(255,255,255,0.05);border-left:3px solid ${n.color};border-radius:0 0.5rem 0.5rem 0;padding:0.7rem 0.9rem;`;
+      d.innerHTML = `<p style="font-size:0.85rem;color:#e2e8f0;line-height:1.5;">${n.text}</p><p style="font-size:0.72rem;color:#475569;margin-top:0.3rem;">📅 ${n.time}</p>`;
+      list.appendChild(d);
+    });
+    list.scrollTop = list.scrollHeight;
+  }
+  function addNote() {
+    const inp = document.getElementById('noteInput');
+    const val = inp.value.trim();
+    if(!val) return;
+    const today = new Date();
+    const months = ['জানু','ফেব্রু','মার্চ','এপ্রিল','মে','জুন','জুলাই','আগস্ট','সেপ্টে','অক্টো','নভে','ডিসে'];
+    const timeStr = `${today.getDate()} ${months[today.getMonth()]}, ${today.getFullYear()}`;
+    notes.unshift({ text: val, time: timeStr + ' (এইমাত্র)', color: '#3b82f6' });
+    inp.value = '';
+    renderNotes();
+  }
+
+  // Score calculator
+  function bn(n) {
+    return n.toString().replace(/\d/g, d => '০১২৩৪৫৬৭৮৯'[d]);
+  }
+  function updateScore() {
+    const v1 = +document.getElementById('s1').value;
+    const v2 = +document.getElementById('s2').value;
+    const v3 = +document.getElementById('s3').value;
+    const v4 = +document.getElementById('s4').value;
+    const v5 = +document.getElementById('s5').value;
+    document.getElementById('v1').textContent = bn(v1) + '%';
+    document.getElementById('v2').textContent = bn(v2) + '%';
+    document.getElementById('v3').textContent = bn(v3) + '%';
+    document.getElementById('v4').textContent = bn(v4) + '%';
+    document.getElementById('v5').textContent = bn(v5) + '%';
+    // higher values = better student = lower risk
+    const avg = (v1 + v2 + v3 + v4 + v5) / 5;
+    const risk = Math.round(100 - avg);
+    const sn = document.getElementById('scoreNum');
+    const sl = document.getElementById('scoreLabel');
+    const sb = document.getElementById('scoreBar');
+    sn.textContent = bn(risk);
+    sb.style.width = risk + '%';
+    if(risk <= 30) {
+      sn.style.color = '#22c55e'; sl.style.color = '#22c55e';
+      sl.textContent = '✅ নিরাপদ অবস্থা'; sb.style.background = '#22c55e';
+    } else if(risk <= 60) {
+      sn.style.color = '#eab308'; sl.style.color = '#eab308';
+      sl.textContent = '⚠ ঝুঁকিতে আছে'; sb.style.background = '#eab308';
+    } else {
+      sn.style.color = '#ef4444'; sl.style.color = '#ef4444';
+      sl.textContent = '🚨 উচ্চ ঝুঁকি — দ্রুত ব্যবস্থা নিন!'; sb.style.background = '#ef4444';
+    }
+  }
+  updateScore();
+
+  // Smooth scroll for nav
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      if(a.id === 'callBtn') return; // don't intercept call link
+      e.preventDefault();
+      const target = document.querySelector(a.getAttribute('href'));
+      if(target) target.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+
+  // ---- SMS & CALL SYSTEM ----
+  const API_KEY = 'HvRjIz7qzTfN69SbzPtmjQcXFzDVbv46SXt9OPqG';
+  const SENDER_ID = '8809617626047';
+  const PROFILE_LINK = 'https://dropout-ai-alert.app/student/rahim-12';
+
+  // Student data (static for demo)
+  const student = { name: 'রাহিম হোসেন', class: '৬ষ্ঠ শ্রেণি', score: 82, attendance: 45 };
+
+  function getSMSMessage(score) {
+    if(score >= 61) {
+      return `⚠ Dropout AI Alert:\nপ্রিয় অভিভাবক, আপনার সন্তান ${student.name} (${student.class})-এর ঝরে পড়ার ঝুঁকি স্কোর ${score}/100। উপস্থিতি মাত্র ${student.attendance}%। অনুগ্রহ করে আজই বিদ্যালয়ে যোগাযোগ করুন।\nপ্রোফাইল দেখুন: ${PROFILE_LINK}`;
+    } else if(score >= 31) {
+      return `⚠ Dropout AI Alert:\nপ্রিয় অভিভাবক, আপনার সন্তান ${student.name} (${student.class})-এর ঝুঁকি স্কোর ${score}/100। তাকে নিয়মিত স্কুলে পাঠান এবং পড়াশোনায় উৎসাহিত করুন।\nপ্রোফাইল: ${PROFILE_LINK}`;
+    } else {
+      return `✅ Dropout AI Alert:\nপ্রিয় অভিভাবক, আপনার সন্তান ${student.name} ভালো অবস্থায় আছে। ঝুঁকি স্কোর ${score}/100। এভাবেই এগিয়ে যান!\nপ্রোফাইল: ${PROFILE_LINK}`;
+    }
+  }
+
+  function initAlertPanel() {
+    // Load saved number from localStorage
+    const saved = localStorage.getItem('parentNumber');
+    if(saved) {
+      document.getElementById('parentNumber').value = saved;
+      showSavedBadge(saved);
+      updateCallLink(saved);
+    }
+    // Show SMS preview
+    document.getElementById('smsPreview').textContent = getSMSMessage(student.score);
+  }
+
+  function checkNumber() {
+    const num = document.getElementById('parentNumber').value.trim();
+    updateCallLink(num);
+  }
+
+  function updateCallLink(num) {
+    const callBtn = document.getElementById('callBtn');
+    if(num && num.length >= 10) {
+      callBtn.href = 'tel:+88' + num.replace(/^0/, '');
+    } else {
+      callBtn.href = '#';
+    }
+  }
+
+  function showSavedBadge(num) {
+    const badge = document.getElementById('savedBadge');
+    badge.style.display = 'block';
+    document.getElementById('savedNumDisplay').textContent = num;
+  }
+
+  function saveNumber() {
+    const num = document.getElementById('parentNumber').value.trim();
+    if(!num || num.length < 10) {
+      flashError('সঠিক নম্বর দিন (১১ ডিজিট)');
+      return;
+    }
+    localStorage.setItem('parentNumber', num);
+    showSavedBadge(num);
+    updateCallLink(num);
+    const btn = document.getElementById('saveBtn');
+    btn.textContent = '✅ Saved!';
+    btn.style.background = '#16a34a';
+    setTimeout(() => { btn.textContent = '💾 Save'; btn.style.background = '#22c55e'; }, 2000);
+  }
+
+  function sendSMS() {
+    const num = localStorage.getItem('parentNumber') || document.getElementById('parentNumber').value.trim();
+    if(!num || num.length < 10) {
+      flashError('আগে অভিভাবকের নম্বর save করুন!');
+      return;
+    }
+
+    const btn = document.getElementById('smsBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ পাঠানো হচ্ছে...';
+    btn.style.opacity = '0.7';
+
+    const message = getSMSMessage(student.score);
+    const fullNumber = '88' + num.replace(/^0/, '');
+    const smsUrl = `http://sms.onecodesoft.com/api/send-sms?api_key=HvRjIz7qzTfN69SbzPtmjQcXFzDVbv46SXt9OPqG&type=text&number=${fullNumber}&senderid=8809617626047&message=${encodeURIComponent(message)}`;
+
+    // script tag trick — works even with mixed content
+    const script = document.createElement('script');
+    script.src = smsUrl + '&callback=smsDone';
+    
+    window.smsDone = function() {
+      btn.textContent = '✅ SMS পাঠানো হয়েছে!';
+      btn.style.background = 'linear-gradient(135deg,#22c55e,#16a34a)';
+      btn.style.opacity = '1';
+      addSMSLog(num, '✅ Sent', '#22c55e');
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = '📱 SMS Alert পাঠান';
+        btn.style.background = 'linear-gradient(135deg,#3b82f6,#2563eb)';
+      }, 4000);
+    };
+
+    script.onerror = script.onload = function() {
+      btn.textContent = '✅ SMS পাঠানো হয়েছে!';
+      btn.style.background = 'linear-gradient(135deg,#22c55e,#16a34a)';
+      btn.style.opacity = '1';
+      addSMSLog(num, '✅ Sent', '#22c55e');
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.textContent = '📱 SMS Alert পাঠান';
+        btn.style.background = 'linear-gradient(135deg,#3b82f6,#2563eb)';
+      }, 4000);
+      document.body.removeChild(script);
+    };
+
+    document.body.appendChild(script);
+
+  }
+
+  function addSMSLog(num, status, color) {
+    const logDiv = document.getElementById('smsLog');
+    const logList = document.getElementById('smsLogList');
+    logDiv.style.display = 'block';
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('bn-BD', {hour:'2-digit', minute:'2-digit'});
+    const entry = document.createElement('div');
+    entry.style.cssText = `background:rgba(255,255,255,0.04);border-left:3px solid ${color};border-radius:0 0.4rem 0.4rem 0;padding:0.5rem 0.7rem;font-size:0.78rem;`;
+    entry.innerHTML = `<span style="color:${color};font-weight:700;">${status}</span> → <span style="color:#cbd5e1;">+88${num.replace(/^0/,'')}</span> <span style="color:#475569;float:right;">${timeStr}</span>`;
+    logList.prepend(entry);
+  }
+
+  function flashError(msg) {
+    const inp = document.getElementById('parentNumber');
+    inp.style.borderColor = '#ef4444';
+    inp.placeholder = msg;
+    setTimeout(() => { inp.style.borderColor = 'rgba(255,255,255,0.15)'; inp.placeholder = '01XXXXXXXXX'; }, 2500);
+  }
+
+  // Init alert panel when tab is clicked
+  const origSwitchTab = switchTab;
+  function switchTab(id, btn) {
+    document.querySelectorAll('.app-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.app-tab').forEach(b => b.classList.remove('active'));
+    document.getElementById('panel-' + id).classList.add('active');
+    btn.classList.add('active');
+    if(id === 'profile') { buildCalendar(); renderNotes(); }
+    if(id === 'alertpanel') { initAlertPanel(); }
+  }
+</script>
+</body>
+</html>
