@@ -959,7 +959,7 @@
     setTimeout(() => { btn.textContent = '💾 Save'; btn.style.background = '#22c55e'; }, 2000);
   }
 
-  function sendSMS() {
+  async function sendSMS() {
     const num = localStorage.getItem('parentNumber') || document.getElementById('parentNumber').value.trim();
     if(!num || num.length < 10) {
       flashError('আগে অভিভাবকের নম্বর save করুন!');
@@ -973,38 +973,33 @@
 
     const message = getSMSMessage(student.score);
     const fullNumber = '88' + num.replace(/^0/, '');
-    const smsUrl = `http://sms.onecodesoft.com/api/send-sms?api_key=HvRjIz7qzTfN69SbzPtmjQcXFzDVbv46SXt9OPqG&type=text&number=${fullNumber}&senderid=8809617626047&message=${encodeURIComponent(message)}`;
+    const proxyUrl = `https://dropout-sms-proxy.vercel.app/api/send-sms?number=${fullNumber}&message=${encodeURIComponent(message)}`;
 
-    // script tag trick — works even with mixed content
-    const script = document.createElement('script');
-    script.src = smsUrl + '&callback=smsDone';
-    
-    window.smsDone = function() {
+    let sent = false;
+    try {
+      const res = await fetch(proxyUrl);
+      const data = await res.json();
+      sent = data.success;
+    } catch(e) {
+      sent = false;
+    }
+
+    if(sent) {
       btn.textContent = '✅ SMS পাঠানো হয়েছে!';
       btn.style.background = 'linear-gradient(135deg,#22c55e,#16a34a)';
       btn.style.opacity = '1';
       addSMSLog(num, '✅ Sent', '#22c55e');
-      setTimeout(() => {
-        btn.disabled = false;
-        btn.textContent = '📱 SMS Alert পাঠান';
-        btn.style.background = 'linear-gradient(135deg,#3b82f6,#2563eb)';
-      }, 4000);
-    };
-
-    script.onerror = script.onload = function() {
-      btn.textContent = '✅ SMS পাঠানো হয়েছে!';
-      btn.style.background = 'linear-gradient(135deg,#22c55e,#16a34a)';
+    } else {
+      btn.textContent = '❌ ব্যর্থ হয়েছে';
+      btn.style.background = 'linear-gradient(135deg,#ef4444,#dc2626)';
       btn.style.opacity = '1';
-      addSMSLog(num, '✅ Sent', '#22c55e');
-      setTimeout(() => {
-        btn.disabled = false;
-        btn.textContent = '📱 SMS Alert পাঠান';
-        btn.style.background = 'linear-gradient(135deg,#3b82f6,#2563eb)';
-      }, 4000);
-      document.body.removeChild(script);
-    };
-
-    document.body.appendChild(script);
+      addSMSLog(num, '❌ Failed', '#ef4444');
+    }
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.textContent = '📱 SMS Alert পাঠান';
+      btn.style.background = 'linear-gradient(135deg,#3b82f6,#2563eb)';
+    }, 4000);
 
   }
 
