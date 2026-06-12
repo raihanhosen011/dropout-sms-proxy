@@ -645,7 +645,8 @@
               <span style="position:absolute;left:0.8rem;top:50%;transform:translateY(-50%);color:#64748b;font-size:0.85rem;">🇧🇩 +88</span>
               <input id="parentNumber" type="tel" maxlength="11" placeholder="01XXXXXXXXX"
                 style="width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:0.6rem;padding:0.65rem 0.9rem 0.65rem 3.8rem;color:#fff;font-size:0.9rem;font-family:'Hind Siliguri',sans-serif;outline:none;"
-                oninput="checkNumber()">
+                oninput="this.value=this.value.replace(/[^0-9]/g,'');checkNumber()"
+                onkeypress="if(this.value.length===0 && event.key!=='0') event.preventDefault()">
             </div>
             <button onclick="saveNumber()" id="saveBtn"
               style="background:#22c55e;color:#fff;border:none;border-radius:0.6rem;padding:0.65rem 1.1rem;font-weight:700;cursor:pointer;font-size:0.85rem;white-space:nowrap;transition:all 0.2s;">
@@ -946,8 +947,8 @@
 
   function saveNumber() {
     const num = document.getElementById('parentNumber').value.trim();
-    if(!num || num.length < 10) {
-      flashError('সঠিক নম্বর দিন (১১ ডিজিট)');
+    if(!num || num.length !== 11 || !num.startsWith('0')) {
+      flashError('০ দিয়ে শুরু, ১১ ডিজিট দিন');
       return;
     }
     localStorage.setItem('parentNumber', num);
@@ -961,8 +962,8 @@
 
   async function sendSMS() {
     const num = localStorage.getItem('parentNumber') || document.getElementById('parentNumber').value.trim();
-    if(!num || num.length < 10) {
-      flashError('আগে অভিভাবকের নম্বর save করুন!');
+    if(!num || num.length !== 11 || !num.startsWith('0')) {
+      flashError('আগে সঠিক নম্বর save করুন!');
       return;
     }
 
@@ -972,12 +973,7 @@
     btn.style.opacity = '0.7';
 
     const message = getSMSMessage(student.score);
-    // Format: must be 8801XXXXXXXXX (13 digits)
-    let formatted = num.replace(/\D/g, ''); // remove non-digits
-    if(formatted.startsWith('88')) formatted = formatted; // already has 88
-    else if(formatted.startsWith('01')) formatted = '88' + formatted;
-    else if(formatted.startsWith('1')) formatted = '880' + formatted;
-    const fullNumber = formatted;
+    const fullNumber = '88' + num;
     const proxyUrl = `https://dropout-sms-proxy.vercel.app/api/send-sms?number=${fullNumber}&message=${encodeURIComponent(message)}`;
 
     let sent = false;
